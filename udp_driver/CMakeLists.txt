@@ -38,13 +38,15 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   src/udp_socket.cpp
   src/udp_driver.cpp
 )
-ament_target_dependencies(${PROJECT_NAME} "ASIO")
+target_include_directories(${PROJECT_NAME} PUBLIC ${ASIO_INCLUDE_DIRS})
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${ASIO_DEFINITIONS})
 
 ament_auto_add_library(${PROJECT_NAME}_nodes SHARED
   src/udp_receiver_node.cpp
   src/udp_sender_node.cpp
 )
-ament_target_dependencies(${PROJECT_NAME}_nodes "ASIO")
+target_include_directories(${PROJECT_NAME}_nodes PUBLIC ${ASIO_INCLUDE_DIRS})
+target_compile_definitions(${PROJECT_NAME}_nodes PUBLIC ${ASIO_DEFINITIONS})
 target_link_libraries(${PROJECT_NAME}_nodes ${PROJECT_NAME})
 
 rclcpp_components_register_node(${PROJECT_NAME}_nodes
@@ -62,7 +64,8 @@ ament_auto_add_executable(udp_bridge_node_exe
 )
 
 target_link_libraries(udp_bridge_node_exe ${PROJECT_NAME} ${PROJECT_NAME}_nodes)
-ament_target_dependencies(udp_bridge_node_exe ASIO)
+target_include_directories(udp_bridge_node_exe PRIVATE ${ASIO_INCLUDE_DIRS})
+target_compile_definitions(udp_bridge_node_exe PRIVATE ${ASIO_DEFINITIONS})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -80,15 +83,16 @@ if(BUILD_TESTING)
 
     ament_add_gtest(${TEST_UDP_DRIVER_EXE}
       test/${name}.cpp)
-    ament_target_dependencies(${TEST_UDP_DRIVER_EXE}
-      rclcpp
-      std_msgs
-      udp_msgs
-      lifecycle_msgs
-      ASIO)
-
-    target_include_directories(${TEST_UDP_DRIVER_EXE} PRIVATE include)
-    target_link_libraries(${TEST_UDP_DRIVER_EXE} ${PROJECT_NAME} ${PROJECT_NAME}_nodes)
+    target_include_directories(${TEST_UDP_DRIVER_EXE} PRIVATE include ${ASIO_INCLUDE_DIRS})
+    target_compile_definitions(${TEST_UDP_DRIVER_EXE} PRIVATE ${ASIO_DEFINITIONS})
+    target_link_libraries(${TEST_UDP_DRIVER_EXE}
+      ${PROJECT_NAME}
+      ${PROJECT_NAME}_nodes
+      rclcpp::rclcpp
+      std_msgs::std_msgs
+      udp_msgs::udp_msgs
+      lifecycle_msgs::lifecycle_msgs
+    )
   endforeach()
 endif()
 
